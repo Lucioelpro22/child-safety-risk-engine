@@ -4,7 +4,7 @@
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-Version 0.1.3 · deterministic, explainable signals for child digital safety.
+Version 0.1.4 · deterministic, explainable signals for child digital safety.
 
 Deterministic, explainable Python rules for identifying safety signals in text that may involve grooming, coercion, isolation, secrecy requests, sexual escalation, or sextortion.
 
@@ -87,6 +87,7 @@ app/                   Optional FastAPI adapter
 tests/                 Unit and behavior tests
 docs/threat-model.md   Security and privacy boundaries
 docs/privacy.md        Data minimization and retention guidance
+docs/operations.md     Demo/staging quickstart, preflight, rollback, and shutdown
 ```
 
 ## Docker
@@ -94,11 +95,16 @@ docs/privacy.md        Data minimization and retention guidance
 The image runs as an unprivileged user and executes a local smoke check:
 
 ```bash
-docker build -t child-safety-risk-engine:0.1.3 .
-docker run --rm child-safety-risk-engine:0.1.3
+docker build -t child-safety-risk-engine:0.1.4 .
+docker run --rm child-safety-risk-engine:0.1.4
 ```
 
 For an HTTP deployment, place the FastAPI adapter behind an authenticated gateway and apply the controls described in [docs/safe-use.md](docs/safe-use.md). A reviewed synthetic-only demonstration plan is documented in [docs/public-demo.md](docs/public-demo.md). For an allow-listed demo, use the operational [deployment checklist](docs/allowlist-demo-deployment.md).
+
+An Nginx staging template is available under [`deploy/staging/`](deploy/staging/);
+it contains placeholders only and requires a security review before use.
+
+The operator runbook for local and private staging is [docs/operations.md](docs/operations.md).
 
 ## Security
 
