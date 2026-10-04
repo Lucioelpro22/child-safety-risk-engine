@@ -3,6 +3,14 @@
 All notable changes to this project are documented here. The project follows
 [Semantic Versioning](https://semver.org/).
 
+## [0.1.3] - 2026-10-04
+
+### Fixed
+
+- Run the test suite as `python -m pytest` so the application package is importable in CI.
+- Add a real container `/health` smoke test to the CI workflow.
+- Align package, API, and module metadata at `0.1.3`.
+
 ## [0.1.2] - 2026-10-04
 
 ### Fixed
@@ -51,3 +59,4 @@ Initial public release.
 [0.1.0]: https://github.com/Lucioelpro22/child-safety-risk-engine/releases/tag/v0.1.0
 [0.1.1]: https://github.com/Lucioelpro22/child-safety-risk-engine/releases/tag/v0.1.1
 [0.1.2]: https://github.com/Lucioelpro22/child-safety-risk-engine/releases/tag/v0.1.2
+[0.1.3]: https://github.com/Lucioelpro22/child-safety-risk-engine/releases/tag/v0.1.3
