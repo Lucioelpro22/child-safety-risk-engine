@@ -3,7 +3,7 @@ fastapi==0.142.2
 httpx==0.28.1
 httptools==0.8.0
 pydantic==2.13.5
-pydantic-core==2.46.5
+pydantic-core==2.49.0
 pytest==9.1.1
 python-dotenv==1.2.4
 starlette==1.7.0
