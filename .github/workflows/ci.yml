@@ -23,7 +23,7 @@ jobs:
       - run: python -m pip install --upgrade pip
       - run: python -m pip install -c constraints.txt -e '.[test]' ruff
       - run: ruff check .
-      - run: pytest -q
+      - run: python -m pytest -q
       - run: python -m pip check
 
   container:
@@ -42,6 +42,17 @@ jobs:
           load: true
       - name: Verify image metadata
         run: docker image inspect child-safety-risk-engine:ci --format '{{.Config.User}}' | grep -Fx appuser
+      - name: Smoke test container health endpoint
+        run: |
+          docker run --detach --rm --name child-safety-risk-engine-ci -p 18000:8000 child-safety-risk-engine:ci
+          trap 'docker stop child-safety-risk-engine-ci' EXIT
+          for attempt in $(seq 1 20); do
+            if curl --fail --silent http://127.0.0.1:18000/health; then
+              exit 0
+            fi
+            sleep 1
+          done
+          exit 1
 
   dependency-audit:
     runs-on: ubuntu-latest
