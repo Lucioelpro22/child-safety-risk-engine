@@ -23,7 +23,7 @@ The package is intentionally a **signal and triage component**. It does not esta
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install -e '.[dev]'
+python -m pip install -e '.[dev,test]'
 python -m pytest
 ```
 
@@ -60,7 +60,7 @@ The response contains only structured signals and counts; it does not echo the s
   "risk_score": 0.25,
   "risk_level": "medium",
   "signals": ["secrecy_request"],
-  "policy_version": "1.0",
+  "policy_version": "2026.1",
   "request_id": "12345678-1234-5678-1234-567812345678"
 }
 ```
@@ -98,7 +98,9 @@ docker build -t child-safety-risk-engine:0.1.0 .
 docker run --rm child-safety-risk-engine:0.1.0
 ```
 
-For an HTTP deployment, place the FastAPI adapter behind an authenticated gateway and apply the controls described in [docs/safe-use.md](docs/safe-use.md).
+For an HTTP deployment, place the FastAPI adapter behind an authenticated gateway and apply the controls described in [docs/safe-use.md](docs/safe-use.md). A reviewed synthetic-only demonstration plan is documented in [docs/public-demo.md](docs/public-demo.md).
+
+For a reviewed, synthetic-only demonstration plan, see [docs/public-demo.md](docs/public-demo.md).
 
 ## Security
 
