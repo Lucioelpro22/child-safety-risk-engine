@@ -146,7 +146,7 @@ def _normalise_result(result: Any, request_id: str) -> RiskEvaluationResponse:
 
 
 def create_app(evaluator: Callable[[dict[str, Any]], Any] | None = None) -> FastAPI:
-    app = FastAPI(title="Child Safety Risk Engine", version="0.1.2")
+    app = FastAPI(title="Child Safety Risk Engine", version="0.1.3")
     selected_evaluator = evaluator
 
     @app.middleware("http")
