@@ -1,6 +1,6 @@
 """Explainable, deterministic risk scoring for child-safety moderation."""
 
-__version__ = "0.1.3"
+__version__ = "0.1.4"
 
 from .engine import RiskEngine, analyze
 from .models import RiskAssessment, RiskLevel, RiskSignal
