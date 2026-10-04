@@ -3,6 +3,15 @@
 All notable changes to this project are documented here. The project follows
 [Semantic Versioning](https://semver.org/).
 
+## [0.1.1] - 2026-10-04
+
+### Fixed
+
+- Corrected the controlled demo example and aligned the bundled policy version.
+- Redacted evaluator exception details from application logs.
+- Added no-store and defensive response headers for the HTTP adapter.
+- Documented privacy controls for allow-listed demonstrations.
+
 ## [0.1.0] - 2026-10-04
 
 Initial public release.
@@ -32,3 +41,4 @@ Initial public release.
   product with appropriate legal, privacy, security, and safeguarding controls.
 
 [0.1.0]: https://github.com/Lucioelpro22/child-safety-risk-engine/releases/tag/v0.1.0
+[0.1.1]: https://github.com/Lucioelpro22/child-safety-risk-engine/releases/tag/v0.1.1
