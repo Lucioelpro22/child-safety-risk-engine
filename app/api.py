@@ -25,6 +25,7 @@ MAX_MESSAGE_CHARS = 10_000
 MAX_HISTORY_MESSAGES = 100
 MAX_HISTORY_TOTAL_CHARS = 100_000
 MAX_TOTAL_TEXT_CHARS = 100_000
+POLICY_VERSION = "2026.1"
 _CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
 _EMAIL = re.compile(r"\b[^\s@]+@[^\s@]+\.[^\s@]+\b")
 _PHONE = re.compile(r"(?<!\w)(?:\+?\d[\d\s().-]{7,}\d)(?!\w)")
@@ -87,7 +88,7 @@ class RiskEvaluationResponse(BaseModel):
     risk_score: float = Field(ge=0.0, le=1.0)
     risk_level: str = Field(pattern="^(low|medium|high|critical)$")
     signals: list[str] = Field(default_factory=list, max_length=50)
-    policy_version: str = "1.0"
+    policy_version: str = POLICY_VERSION
     request_id: str
 
 
@@ -139,13 +140,13 @@ def _normalise_result(result: Any, request_id: str) -> RiskEvaluationResponse:
         risk_score=float(result.get("risk_score", 0.0)),
         risk_level=str(result.get("risk_level", "low")),
         signals=[str(signal) for signal in result.get("signals", [])][:50],
-        policy_version=str(result.get("policy_version", "1.0")),
+        policy_version=str(result.get("policy_version", POLICY_VERSION)),
         request_id=request_id,
     )
 
 
 def create_app(evaluator: Callable[[dict[str, Any]], Any] | None = None) -> FastAPI:
-    app = FastAPI(title="Child Safety Risk Engine", version="0.1.0")
+    app = FastAPI(title="Child Safety Risk Engine", version="0.1.1")
     selected_evaluator = evaluator
 
     @app.middleware("http")
@@ -153,6 +154,12 @@ def create_app(evaluator: Callable[[dict[str, Any]], Any] | None = None) -> Fast
         request.state.request_id = _request_id(request)
         response = await call_next(request)
         response.headers["X-Request-ID"] = request.state.request_id
+        # Triage metadata must not be cached or exposed to browser capabilities.
+        response.headers["Cache-Control"] = "no-store"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["Referrer-Policy"] = "no-referrer"
+        response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
         return response
 
     @app.exception_handler(RequestValidationError)
@@ -167,7 +174,11 @@ def create_app(evaluator: Callable[[dict[str, Any]], Any] | None = None) -> Fast
 
     @app.exception_handler(Exception)
     async def internal_error_handler(request: Request, exc: Exception) -> JSONResponse:
-        logger.exception("risk evaluation request failed", extra={"request_id": request.state.request_id})
+        # Do not include exception text or traceback in application logs: an
+        # evaluator may receive sensitive material from an upstream service.
+        # Detailed diagnostics belong in a separately access-controlled error
+        # channel with explicit redaction.
+        logger.error("risk evaluation request failed", extra={"request_id": request.state.request_id})
         return JSONResponse(
             status_code=500,
             content={
