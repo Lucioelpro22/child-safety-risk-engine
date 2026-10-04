@@ -1,0 +1,88 @@
+# Provider-neutral Nginx staging template.
+# Review with the platform owner before use. Replace every placeholder and keep
+# the upstream on a private network; this file contains no real credentials.
+
+events {}
+
+http {
+    # Do not log request or response bodies. The standard access log contains
+    # operational metadata only; redact Authorization at the collector too.
+    log_format demo_safe '$remote_addr $request_method $status $request_time '
+                         'request_bytes=$request_length '
+                         'response_bytes=$bytes_sent request_id=$request_id';
+    access_log /var/log/nginx/access.log demo_safe;
+    error_log /var/log/nginx/error.log warn;
+
+    # Low-volume demo protection. Tune after a load test; keep the burst small.
+    limit_req_zone $binary_remote_addr zone=demo_per_ip:10m rate=10r/m;
+    limit_conn_zone $binary_remote_addr zone=demo_conn:10m;
+
+    # Exact browser origin. An empty value means no CORS headers are emitted.
+    map $http_origin $demo_origin {
+        default "";
+        https://demo.example.invalid $http_origin;
+    }
+
+    server {
+        listen 443 ssl http2;
+        server_name demo.example.invalid;
+
+        # Replace with managed certificate paths. Do not commit private keys.
+        ssl_certificate     /run/secrets/staging_fullchain.pem;
+        ssl_certificate_key /run/secrets/staging_privkey.pem;
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_session_tickets off;
+
+        # Network allow-list: deny by default and add approved VPN/NAT ranges.
+        allow 192.0.2.0/24;
+        deny all;
+
+        # Gateway authentication is required even for allow-listed sources.
+        auth_basic "Restricted staging demo";
+        auth_basic_user_file /run/secrets/staging_htpasswd;
+
+        client_max_body_size 256k;
+        proxy_connect_timeout 3s;
+        proxy_send_timeout 10s;
+        proxy_read_timeout 10s;
+
+        location = /health {
+            proxy_pass http://risk_engine:8000/health;
+            proxy_set_header X-Request-ID $request_id;
+        }
+
+        location = /v1/risk/evaluate {
+            limit_req zone=demo_per_ip burst=2 nodelay;
+            limit_conn demo_conn 2;
+
+            # CORS is exact-origin and limited to the one API method/headers.
+            add_header Access-Control-Allow-Origin $demo_origin always;
+            add_header Access-Control-Allow-Credentials "true" always;
+            add_header Access-Control-Allow-Methods "POST" always;
+            add_header Access-Control-Allow-Headers "Content-Type, X-Request-ID, Authorization" always;
+            add_header Vary "Origin" always;
+            add_header Cache-Control "no-store" always;
+            add_header Pragma "no-cache" always;
+            add_header X-Content-Type-Options "nosniff" always;
+            add_header Referrer-Policy "no-referrer" always;
+
+            if ($request_method = OPTIONS) {
+                return 204;
+            }
+
+            proxy_pass http://risk_engine:8000/v1/risk/evaluate;
+            proxy_set_header X-Request-ID $request_id;
+            proxy_set_header X-Forwarded-Proto https;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header Host $host;
+            proxy_set_header Authorization "";
+            proxy_buffering off;
+        }
+
+        # Never let the browser or an intermediary cache triage metadata.
+        add_header Cache-Control "no-store" always;
+        add_header Pragma "no-cache" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "no-referrer" always;
+    }
+}
