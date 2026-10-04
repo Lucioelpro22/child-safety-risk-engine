@@ -3,6 +3,15 @@
 All notable changes to this project are documented here. The project follows
 [Semantic Versioning](https://semver.org/).
 
+## [0.1.4] - 2026-10-04
+
+### Added
+
+- Reproducible local synthetic demo smoke script.
+- Operations runbook for local and private staging demonstrations.
+- Nginx gateway template with TLS, authentication, allow-list, CORS, rate limiting, and shutdown controls.
+- Documented staging deployment and data-deletion checklist.
+
 ## [0.1.3] - 2026-10-04
 
 ### Fixed
@@ -60,3 +69,4 @@ Initial public release.
 [0.1.1]: https://github.com/Lucioelpro22/child-safety-risk-engine/releases/tag/v0.1.1
 [0.1.2]: https://github.com/Lucioelpro22/child-safety-risk-engine/releases/tag/v0.1.2
 [0.1.3]: https://github.com/Lucioelpro22/child-safety-risk-engine/releases/tag/v0.1.3
+[0.1.4]: https://github.com/Lucioelpro22/child-safety-risk-engine/releases/tag/v0.1.4
