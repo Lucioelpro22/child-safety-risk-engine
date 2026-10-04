@@ -17,6 +17,9 @@ def test_health() -> None:
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
     assert response.headers["x-request-id"]
+    assert response.headers["cache-control"] == "no-store"
+    assert response.headers["x-content-type-options"] == "nosniff"
+    assert response.headers["referrer-policy"] == "no-referrer"
 
 
 def test_evaluate_returns_safe_structured_response() -> None:
@@ -31,7 +34,7 @@ def test_evaluate_returns_safe_structured_response() -> None:
         "risk_score": 0.87,
         "risk_level": "high",
         "signals": ["secrecy_request"],
-        "policy_version": "1.0",
+            "policy_version": "2026.1",
         "request_id": request_id,
     }
     assert "message" not in response.text
@@ -44,15 +47,17 @@ def test_invalid_request_has_generic_error() -> None:
     assert "detail" not in response.json()
 
 
-def test_evaluator_errors_are_not_leaked() -> None:
+def test_evaluator_errors_are_not_leaked(caplog) -> None:
+    secret = "internal secret payload"
     failing = TestClient(
-        create_app(lambda payload: (_ for _ in ()).throw(RuntimeError("secret"))),
+        create_app(lambda payload: (_ for _ in ()).throw(RuntimeError(secret))),
         raise_server_exceptions=False,
     )
     response = failing.post("/v1/risk/evaluate", json={"message": "hello"})
     assert response.status_code == 500
     assert response.json()["error"]["message"] == "Unable to evaluate request"
-    assert "secret" not in response.text
+    assert secret not in response.text
+    assert secret not in caplog.text
 
 
 def test_api_rejects_pii_and_aggregate_history_over_limit() -> None:
