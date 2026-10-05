@@ -23,7 +23,7 @@ The caller and surrounding product remain responsible for identity, authorizatio
 | Overreliance on a score | Explanations state that human review is required | Require trained review and prohibit sole reliance for consequential action |
 | False positives or negatives | Stable, inspectable rules and tests | Validate on representative data and monitor error patterns |
 | Ruleset tampering | Versioned source and CI checks | Pin releases, review changes, protect branches, verify provenance |
-| Resource exhaustion | API/library enforce 10,000-character messages, 100 messages, and 100,000 total characters; iterables are consumed incrementally | Apply request body, timeout, concurrency, and queue limits |
+| Resource exhaustion | API/library enforce 10,000-character messages, 100 messages including the current message, and 100,000 total characters including newline separators; iterables are consumed incrementally | Apply request body, timeout, concurrency, and queue limits |
 | Data retention beyond purpose | Library has no retention mechanism | Define lawful basis, minimization, retention, deletion, and access review |
 | Malicious input or regex abuse | Rules are reviewed and tested | Add fuzzing/resource tests before accepting untrusted high-volume input |
 

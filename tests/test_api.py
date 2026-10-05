@@ -126,3 +126,48 @@ def test_default_app_uses_bundled_rules_engine() -> None:
     assert body["risk_level"] == "medium"
     assert body["signals"] == ["secrecy_request"]
     assert body["policy_version"] == "2026.1"
+
+
+def test_default_engine_accepts_99_history_messages_and_current_message() -> None:
+    response = TestClient(app).post(
+        "/v1/risk/evaluate",
+        json={"message": "hello", "conversation_history": ["hello"] * 99},
+    )
+    assert response.status_code == 200
+    assert response.json()["signals"] == []
+
+
+def test_100_history_messages_are_rejected_before_evaluation() -> None:
+    calls = []
+
+    def recording_evaluator(payload: dict) -> dict:
+        calls.append(payload)
+        return evaluator(payload)
+
+    response = TestClient(create_app(recording_evaluator)).post(
+        "/v1/risk/evaluate",
+        json={"message": "hello", "conversation_history": ["hello"] * 100},
+    )
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "invalid_request"
+    assert calls == []
+
+
+def test_default_engine_accepts_exact_total_including_separators() -> None:
+    # Nine history messages, current message, and nine newline separators.
+    response = TestClient(app).post(
+        "/v1/risk/evaluate",
+        json={"message": "x" * 9_991, "conversation_history": ["x" * 10_000] * 9},
+    )
+    assert response.status_code == 200
+    assert response.json()["signals"] == []
+
+
+def test_separators_cannot_push_accepted_input_over_engine_limit() -> None:
+    response = TestClient(app, raise_server_exceptions=False).post(
+        "/v1/risk/evaluate",
+        json={"message": "x" * 9_992, "conversation_history": ["x" * 10_000] * 9},
+    )
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "invalid_request"
+    assert "x" * 100 not in response.text
