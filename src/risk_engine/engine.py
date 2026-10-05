@@ -6,11 +6,9 @@ import re
 import unicodedata
 from collections.abc import Iterable
 
+from .limits import MAX_MESSAGE_CHARS, MAX_MESSAGES, MAX_TOTAL_CHARS
 from .models import RiskAssessment, RiskLevel, RiskSignal
 
-MAX_MESSAGE_CHARS = 10_000
-MAX_MESSAGES = 100
-MAX_TOTAL_CHARS = 100_000
 _CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
 _EMAIL = re.compile(r"\b[^\s@]+@[^\s@]+\.[^\s@]+\b")
 _PHONE = re.compile(r"(?<!\w)(?:\+?\d[\d\s().-]{7,}\d)(?!\w)")
@@ -89,7 +87,8 @@ class RiskEngine:
                     raise ValueError("text contains too many messages")
                 if len(part) > MAX_MESSAGE_CHARS:
                     raise ValueError("message is too long")
-                total_chars += len(part)
+                # Bound the text actually evaluated, including separators.
+                total_chars += len(part) + bool(parts)
                 if total_chars > MAX_TOTAL_CHARS:
                     raise ValueError("text is too large")
                 parts.append(part)

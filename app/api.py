@@ -19,12 +19,18 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from risk_engine.limits import (
+    MAX_MESSAGE_CHARS,
+    MAX_MESSAGES,
+    MAX_TOTAL_CHARS,
+    conversation_text_length,
+)
+
 logger = logging.getLogger(__name__)
 
-MAX_MESSAGE_CHARS = 10_000
-MAX_HISTORY_MESSAGES = 100
-MAX_HISTORY_TOTAL_CHARS = 100_000
-MAX_TOTAL_TEXT_CHARS = 100_000
+MAX_HISTORY_MESSAGES = MAX_MESSAGES - 1  # Reserve one slot for the current message.
+MAX_HISTORY_TOTAL_CHARS = MAX_TOTAL_CHARS
+MAX_TOTAL_TEXT_CHARS = MAX_TOTAL_CHARS
 POLICY_VERSION = "2026.1"
 _CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
 _EMAIL = re.compile(r"\b[^\s@]+@[^\s@]+\.[^\s@]+\b")
@@ -59,7 +65,7 @@ class RiskEvaluationRequest(BaseModel):
             raise ValueError("conversation_history items must contain text")
         if any(len(item) > MAX_MESSAGE_CHARS for item in value):
             raise ValueError("conversation_history items are too long")
-        if sum(len(item) for item in value) > MAX_HISTORY_TOTAL_CHARS:
+        if conversation_text_length(value) > MAX_HISTORY_TOTAL_CHARS:
             raise ValueError("conversation_history is too large")
         if any(_CONTROL_CHARS.search(item) for item in value):
             raise ValueError("conversation_history contains unsupported characters")
@@ -69,8 +75,9 @@ class RiskEvaluationRequest(BaseModel):
 
     @model_validator(mode="after")
     def total_text_must_be_bounded(self) -> "RiskEvaluationRequest":
-        """Bound the complete evaluation payload, including the current message."""
-        if len(self.message) + sum(len(item) for item in self.conversation_history) > MAX_TOTAL_TEXT_CHARS:
+        """Apply the engine's bound to the exact text it will evaluate."""
+        messages = [*self.conversation_history, self.message]
+        if conversation_text_length(messages) > MAX_TOTAL_TEXT_CHARS:
             raise ValueError("message and conversation_history exceed the total text limit")
         return self
 

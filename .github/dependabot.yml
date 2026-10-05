@@ -4,6 +4,10 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
+    # pydantic pins an exact pydantic-core version. Update the pair only when
+    # regenerating constraints for a compatible pydantic release.
+    ignore:
+      - dependency-name: pydantic-core
   - package-ecosystem: github-actions
     directory: "/"
     schedule:

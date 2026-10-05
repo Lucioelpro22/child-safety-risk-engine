@@ -57,3 +57,11 @@ def test_limits_iterables_and_reject_direct_identifiers():
 def test_common_non_threatening_phrases_do_not_trigger_coercion_or_sextortion():
     result = analyze("You have to finish your homework. Please share your photos with your family.")
     assert result.signals == ()
+
+
+def test_iterable_total_limit_includes_separators():
+    import pytest
+
+    assert analyze(["x" * 10_000] * 9 + ["x" * 9_991]).signals == ()
+    with pytest.raises(ValueError, match="too large"):
+        analyze(iter(["x" * 10_000] * 9 + ["x" * 9_992]))

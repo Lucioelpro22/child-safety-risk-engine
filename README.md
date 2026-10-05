@@ -67,6 +67,16 @@ The response contains only structured signals and counts; it does not echo the s
 
 Use `GET /health` for a liveness check. The API validates message length, age context, history size, and request IDs; callers still need to provide authentication, authorization, rate limiting, and retention controls.
 
+The API accepts at most 99 history messages plus the current message (100
+messages total). Each message is limited to 10,000 characters. The complete
+text evaluated by the engine is limited to 100,000 characters, including one
+newline separator between messages. Requests exceeding these limits receive
+the generic HTTP 422 validation response before evaluation.
+
+`constraints.txt` pins an audited dependency set. Pydantic requires an exact
+`pydantic-core` version; update that pair together when regenerating constraints.
+Dependabot ignores independent core updates to avoid incompatible installs.
+
 ## Integration guidance
 
 The engine accepts a single string or an iterable of strings. The caller is responsible for:
