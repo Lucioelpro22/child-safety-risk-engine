@@ -10,7 +10,7 @@ from risk_engine import __version__
 
 
 def test_package_version_matches_distribution_metadata() -> None:
-    assert __version__ == "0.1.4"
+    assert __version__ == "0.1.5"
     metadata = tomllib.loads((Path(__file__).parents[1] / "pyproject.toml").read_text())
     assert metadata["project"]["version"] == __version__
 
