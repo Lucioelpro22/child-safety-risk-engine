@@ -21,6 +21,6 @@ httpcore==1.0.9
 idna==3.20
 iniconfig==2.3.0
 packaging==26.3
-pluggy==1.6.0
+pluggy==1.7.0
 typing-extensions==4.16.0
 typing-inspection==0.4.4
