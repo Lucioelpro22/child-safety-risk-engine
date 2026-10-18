@@ -1,5 +1,5 @@
 # Generated against Python 3.12. CI and the image install this exact, audited set.
-fastapi==0.142.2
+fastapi==0.143.2
 httpx==0.28.1
 httptools==0.8.0
 pydantic==2.13.5
